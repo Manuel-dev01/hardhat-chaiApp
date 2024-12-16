@@ -1,33 +1,55 @@
 import React from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
+import abi from "./contractJson/chai.json"
+
 
 function App() {
-  const [count, setCount] =   React.useState(0)
+  const [state, setState] =   React.useState({
+    provider: null,
+    signer: null,
+    contract: null
+  })
+
+  const [account, setAccount] = React.useState("Not connected")
+
+  React.useEffect(() => {
+    const template = async () => {
+      const contractAddress = ""
+      const contractABI = abi.abi
+      // Metamask part
+      // In order to do transactions on the sepolia testnet
+      // Metamask consist of infura api that'll allow us in connecting to the blockchain
+
+      try {
+        const {ethereum} = window
+        const account = await ethereum.request({ // This will automatically reqest the metamask and opens the metamask, whenever the person visits the website
+          method: "eth_requestAccounts"
+        })
+  
+        setAccount(account)
+  
+        // The provider is what is going to help us in connecting with the blockchain, using the ethers librarry
+        const provider = new ethers.providers.Web3Provider(ethereum) // Read the blockchain
+        const signer = provider.getSigner() //Write the blockchain
+  
+        const contract = new ethers.Contract(
+          contractAddress,
+          contractABI,
+          signer
+        )
+  
+        setState({ provider, signer, contract})
+      } catch (error) {
+        alert(error)
+      }
+    }
+
+    template()
+  },[])
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      
     </>
   )
 }
