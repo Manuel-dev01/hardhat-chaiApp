@@ -1,6 +1,8 @@
 import React from 'react'
 import './App.css'
 import abi from "./contractJson/chai.json"
+import {ethers} from 'ethers'
+
 
 
 function App() {
@@ -14,7 +16,7 @@ function App() {
 
   React.useEffect(() => {
     const template = async () => {
-      const contractAddress = ""
+      const contractAddress = "0xb65247aA462EF6B42E1CF5Ed16Fd6d12f5033d60"
       const contractABI = abi.abi
       // Metamask part
       // In order to do transactions on the sepolia testnet
@@ -29,18 +31,24 @@ function App() {
         setAccount(account)
   
         // The provider is what is going to help us in connecting with the blockchain, using the ethers librarry
-        const provider = new ethers.providers.Web3Provider(ethereum) // Read the blockchain
-        const signer = provider.getSigner() //Write the blockchain
+        if(ethereum) {
+          console.log("Metamask detected")
+          const provider = await new ethers.BrowserProvider(ethereum) // Read the blockchain
+          const signer = provider.getSigner() //Write the blockchain
+    
+          const contract = new ethers.Contract(
+            contractAddress,
+            contractABI,
+            signer,
+          )
   
-        const contract = new ethers.Contract(
-          contractAddress,
-          contractABI,
-          signer
-        )
-  
-        setState({ provider, signer, contract})
+          console.log(contract)
+          setState({ provider, signer, contract})
+        } else {
+          console.log("Metamask not detected")
+        }
       } catch (error) {
-        alert(error)
+        console.error(error)
       }
     }
 
@@ -49,7 +57,7 @@ function App() {
 
   return (
     <>
-      
+      <h1>Hello world</h1>
     </>
   )
 }

@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.7;
 
-contract chai {
+contract Chai {
     
     struct Memo {
         string name;
