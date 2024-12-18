@@ -2,64 +2,73 @@ import React from 'react'
 import './App.css'
 import abi from "./contractJson/chai.json"
 import {ethers} from 'ethers'
-
-
+import Memos from "./components/Memos"
+import Buy from "./components/Buy"
 
 function App() {
-  const [state, setState] =   React.useState({
+  const [state, setState] = React.useState({
     provider: null,
     signer: null,
     contract: null
-  })
+  });
 
-  const [account, setAccount] = React.useState("Not connected")
+  const [account, setAccount] = React.useState("Not connected");
 
+  
   React.useEffect(() => {
     const template = async () => {
-      const contractAddress = "0xb65247aA462EF6B42E1CF5Ed16Fd6d12f5033d60"
-      const contractABI = abi.abi
-      // Metamask part
-      // In order to do transactions on the sepolia testnet
-      // Metamask consist of infura api that'll allow us in connecting to the blockchain
+      const contractAddress = "0xb65247aA462EF6B42E1CF5Ed16Fd6d12f5033d60";
+      const contractABI = abi.abi;
 
       try {
-        const {ethereum} = window
-        const account = await ethereum.request({ // This will automatically reqest the metamask and opens the metamask, whenever the person visits the website
-          method: "eth_requestAccounts"
-        })
-  
-        setAccount(account)
-  
-        // The provider is what is going to help us in connecting with the blockchain, using the ethers librarry
-        if(ethereum) {
-          console.log("Metamask detected")
-          const provider = await new ethers.BrowserProvider(ethereum) // Read the blockchain
-          const signer = provider.getSigner() //Write the blockchain
-    
-          const contract = new ethers.Contract(
-            contractAddress,
-            contractABI,
-            signer,
-          )
-  
-          console.log(contract)
-          setState({ provider, signer, contract})
-        } else {
-          console.log("Metamask not detected")
-        }
-      } catch (error) {
-        console.error(error)
-      }
-    }
+        const { ethereum } = window;
 
-    template()
-  },[])
+        if (!ethereum) {
+          console.log("Metamask is not installed");
+          return;
+        }
+
+        const accounts = await ethereum.request({ 
+          method: "eth_requestAccounts"
+        });
+
+        setAccount(accounts[0]); // Set first account
+
+        // Listen for account changes
+        window.ethereum.on("accountsChanged", (accounts) => {
+          if (accounts.length > 0) {
+            setAccount(accounts[0]); // Update to new account
+          } else {
+            setAccount("Not connected"); // Handle no accounts case
+          }
+        });
+
+        const provider = new ethers.BrowserProvider(ethereum); // Read the blockchain
+        const signer = await provider.getSigner(); // Write to the blockchain
+
+        const contract = new ethers.Contract(
+          contractAddress,
+          contractABI,
+          signer
+        );
+
+        console.log(contract);
+        setState({ provider, signer, contract });
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    template();
+  }, [])
 
   return (
-    <>
-      <h1>Hello world</h1>
-    </>
+    <div className="App">
+      <h3>Connected account: {account}</h3>
+      <Buy state={state} />
+      {/* <Memos /> */}
+    </div>
   )
 }
 
-export default App
+export default App;
